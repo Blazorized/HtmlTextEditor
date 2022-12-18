@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Blazorized.HtmlTextEditor\Blazorized.HtmlTextEditor.csproj" />
+    <ProjectReference Include="..\..\Blazorized.HtmlTextEditor\Blazorized.HtmlTextEditor.csproj" />
   </ItemGroup>
 
 </Project>
