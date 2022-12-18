@@ -7,13 +7,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{666C
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5DCD4124-DAD2-4777-92CB-16ABA93847C1}"
 	ProjectSection(SolutionItems) = preProject
+		C:\Users\15186\Downloads\blazorized.ico = C:\Users\15186\Downloads\blazorized.ico
 		DeltaExample.png = DeltaExample.png
-		HTMLExample.png = HTMLExample.png
-		InlineEditingExample.png = InlineEditingExample.png
+		icon.ico = icon.ico
 		README.md = README.md
+		screenshot.png = screenshot.png
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blazorized.HtmlTextEditor", "Blazorized.HtmlTextEditor\Blazorized.HtmlTextEditor.csproj", "{A7587348-6524-438F-9B09-1F7DFA799289}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blazorized.HtmlTextEditor", "src\Blazorized.HtmlTextEditor\Blazorized.HtmlTextEditor.csproj", "{A7587348-6524-438F-9B09-1F7DFA799289}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorWasmApp", "samples\BlazorWasmApp\BlazorWasmApp.csproj", "{FF179802-FBEF-4919-986D-2B3D971BDCC1}"
 EndProject

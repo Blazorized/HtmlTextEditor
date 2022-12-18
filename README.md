@@ -3,6 +3,8 @@
 Html Text Editor for Blazor applications - Uses [Quill JS](https://quilljs.com/ "Quill JS.com")
 This project merges the best parts of [Blazored.TextEditor](https://github.com/Blazored/TextEditor "Blazored.TextEditor") and [WYSIWYGTextEditor](https://github.com/somegenericdev/WYSIWYGTextEditor "WYSIWYGTextEditor ") into one version.
 
+![Screenshot](screenshot.png)
+
 ### Sample Applications
 
 * [Simple Blazor WASM application](https://github.com/Blazorized/HtmlTextEditor/tree/main/samples/BlazorWasmApp "BlazorWasmApp") - [Contains an example of uploading images and inserting html]
