@@ -1,15 +1,14 @@
-# Blazored TextEditor
-Rich Text Editor for Blazor applications - Uses [Quill JS](https://quilljs.com/ "Quill JS.com")
 
-![Screenshot](HTMLExample.png)
+# Blazored TextEditor
+Html Text Editor for Blazor applications - Uses [Quill JS](https://quilljs.com/ "Quill JS.com")
+This project merges the best parts of [Blazored.TextEditor](https://github.com/Blazored/TextEditor "Blazored.TextEditor") and [WYSIWYGTextEditor](https://github.com/somegenericdev/WYSIWYGTextEditor "WYSIWYGTextEditor ") into one version.
 
 ### Sample Applications
 
-* [Simple blogging application written in Microsoft Server Side Blazor](https://github.com/ADefWebserver/Blazor-Blogs "Blazor Blogs") - [Contains an example of uploading images]
+* [Simple Blazor WASM application](https://github.com/Blazorized/HtmlTextEditor/tree/main/samples/BlazorWasmApp "BlazorWasmApp") - [Contains an example of uploading images and inserting html]
 
 ### Helpful Articles
 
-* [Creating Reusable Custom Blazor Controls](https://blazorhelpwebsite.com/ViewBlogPost/11 "BlazorHelpWebsite.com")
 * [Creating A Rich Text Editor In Blazor Using Quill](https://blazorhelpwebsite.com/ViewBlogPost/12 "BlazorHelpWebsite.com")
 
 ### Installing
@@ -26,6 +25,7 @@ Blazor Server applications will need to include the following CSS and JS files i
 In the `head` tag add the following CSS.
 
 ```html
+    <link href="_content/Blazorized.HtmlTextEditor/blazor-quill.css" rel="stylesheet">
     <link href="//cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <link href="//cdn.quilljs.com/1.3.6/quill.bubble.css" rel="stylesheet">
 ```
@@ -34,8 +34,8 @@ Then add the JS script at the bottom of the page using the following script tag.
 
 ```html
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-    <script src="_content/Blazorized.HtmlTextEditor/quill-blot-formatter.min.js"></script>
-    <script src="_content/Blazorized.HtmlTextEditor/Blazored-BlazorQuill.js"></script>
+    <script src="_content/Blazorized.HtmlTextEditor/quill-blot-formatter.js"></script>
+    <script src="_content/Blazorized.HtmlTextEditor/blazor-quill.js"></script>
 ```
 
 **NOTE** If you're using Blazor WebAssembly then these need to be added to your `wwwroot\index.html`.
@@ -69,6 +69,7 @@ Below is a list of all the options available on the Text Editor.
 - `GetContent` - Gets the content of the editor in the native Quill JSON Delta format.
 - `LoadContent` (`json`) - Allows the content of the editor to be programmatically set.
 - `LoadHtmlContent` (`string`) - Allows the content of the editor to be programmatically set.
+- `InsertHtml` (`string`) - Inserts HTML at the current point in the editor.
 - `InsertImage` (`string`) - Inserts an image at the current point in the editor.
 - `InsertText` (`string`) - Inserts text at the current point in the editor.
 
@@ -147,11 +148,3 @@ string QuillHTMLContent;
     }
 }
 ```
-### Rich Text Screenshot
-![Screenshot](DeltaExample.png)
-### Read Only Screenshot
-![Screenshot](InlineEditingExample.png)
-
-# Blazored TextEditor Forks
-
-* [WYSIWYGTextEditor](https://github.com/somegenericdev/WYSIWYGTextEditor)
