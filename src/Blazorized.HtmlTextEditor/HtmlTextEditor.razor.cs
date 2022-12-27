@@ -4,8 +4,9 @@ using static Blazorized.HtmlTextEditor.Interop;
 
 namespace Blazorized.HtmlTextEditor;
 
-public partial class HtmlTextEditor
+public partial class HtmlTextEditor : ComponentBase, IDisposable, IAsyncDisposable
 {
+    private string? _interalValue = null;
     private MessageQueueProcessor _eventQueueProcessor = default!;
 
     private string _generatedToolBarId = ConstructToolbarId();
@@ -16,7 +17,8 @@ public partial class HtmlTextEditor
 
     private ElementReference _toolBar;
 
-    private bool disposedValue;
+    private bool _disposedValue;
+    private bool _valueSetting = false;
 
     [Inject]
     public IJSRuntime? JsRuntime { get; set; }
@@ -52,10 +54,13 @@ public partial class HtmlTextEditor
     public string ImageServerUploadUrl { get; set; } = default!;
 
     [Parameter]
-    public EventCallback OnTextChanged { get; set; }
+    public EventCallback<string> BeforeValueChanged { get; set; }
 
     [Parameter]
-    public EventCallback OnTextSaved { get; set; }
+    public EventCallback<string> ValueChanged { get; set; }
+
+    [Parameter]
+    public EventCallback ValueSaved { get; set; }
 
     [Parameter]
     public string Placeholder { get; set; } = "Compose an epic...";
@@ -81,8 +86,16 @@ public partial class HtmlTextEditor
     [Parameter]
     public bool WrapImagesInFigures { get; set; } = true;
 
-#nullable enable
-#nullable disable
+    public HtmlTextEditor()
+    {
+
+    }
+
+    public HtmlTextEditor(IJSRuntime? jsRuntime) : this()
+    {
+        if (jsRuntime != null)
+            this.JsRuntime = jsRuntime;
+    }
 
     public async Task BundleAndSetQuillBlazorBridge()
     {
@@ -99,9 +112,41 @@ public partial class HtmlTextEditor
         }
     }
 
+    [Parameter]
+    public string Value
+    {
+        get
+        {
+            return _interalValue ?? string.Empty;
+        }
+        set
+        {
+            SetValue(value).AndForget();
+        }
+    }
+
+    private async Task SetValue(string value, bool internalSet = true)
+    {
+        if (_interalValue != value && !_valueSetting)
+        {
+            try
+            {
+                _valueSetting = true;
+                if (internalSet)
+                    _interalValue = await LoadHtmlContent(value);
+
+                await ValueChanged.InvokeAsync(_interalValue);
+            }
+            finally
+            {
+                _valueSetting = false;
+            }
+        }
+    }
+
     public async Task EnableEditor(bool mode)
     {
-        await Interop.EnableQuillEditor(JsRuntime, _quillElement, mode);
+        await Interop.EnableQuillEditor(JsRuntime!, _quillElement, mode);
     }
 
     [JSInvokable]
@@ -111,51 +156,69 @@ public partial class HtmlTextEditor
     }
 
     [JSInvokable]
-    public async Task FireTextChangedEvent()
+    public async Task FireTextChangedEvent(string html)
     {
-        await OnTextChanged.InvokeAsync();
+        _interalValue = html;
+        await ValueChanged.InvokeAsync(_interalValue);
     }
 
     [JSInvokable]
     public async Task FireTextSavedEvent()
     {
-        await OnTextSaved.InvokeAsync();
+        await ValueSaved.InvokeAsync();
     }
 
-    public async Task<string> GetContent()
+    public async ValueTask<string> GetContent()
     {
-        return await Interop.GetContent(JsRuntime, _quillElement);
+        return await Interop.GetContent(JsRuntime!, _quillElement);
     }
 
-    public async Task<string> GetHtml()
+    public async ValueTask<string> GetHtml()
     {
-        return await Interop.GetHtml(JsRuntime, _quillElement);
+        _interalValue = await Interop.GetHtml(JsRuntime!, _quillElement);
+        return _interalValue;
     }
 
-    public async Task<string> GetText()
+    public async ValueTask<string> GetText()
     {
-        return await Interop.GetText(JsRuntime, _quillElement);
+        return await Interop.GetText(JsRuntime!, _quillElement);
     }
 
     public async Task InsertImage(string imageUrl)
     {
-        await Interop.InsertQuillImage(JsRuntime, _quillElement, imageUrl);
+        var value = await Interop.InsertQuillImage(JsRuntime!, _quillElement, imageUrl);
+        await SetValue(value, false);
     }
 
-    public async Task LoadContent(string content)
+    public async ValueTask<string> InsertText(string text)
     {
-        await Interop.LoadQuillContent(JsRuntime, _quillElement, content);
+        //Insert as html to keep any current html formating
+        _interalValue = await Interop.InsertQuillHtml(JsRuntime!, _quillElement, text);
+        return _interalValue;
     }
 
-    public async Task LoadHtmlContent(string quillHtmlContent)
+    public async ValueTask<string> InsertHtml(string html)
     {
-        await Interop.LoadQuillHtmlContent(JsRuntime, _quillElement, quillHtmlContent);
+        _interalValue = await Interop.InsertQuillHtml(JsRuntime!, _quillElement, html);
+        return _interalValue;
+    }
+
+    public async ValueTask<string> LoadContent(string content)
+    {
+        _interalValue = await Interop.LoadQuillContent(JsRuntime!, _quillElement, content);
+        return _interalValue;
+    }
+
+    public async ValueTask<string> LoadHtmlContent(string quillHtmlContent)
+    {
+        _interalValue = await Interop.LoadQuillHtmlContent(JsRuntime!, _quillElement, quillHtmlContent);
+        return _interalValue;
     }
 
     [JSInvokable]
     public async Task<string> SaveImage(string imageName, string fileType)
     {
-        var dataReference = await JsRuntime.InvokeAsync<IJSStreamReference>("quillImageDataStream");
+        var dataReference = await JsRuntime!.InvokeAsync<IJSStreamReference>("quillImageDataStream");
         await using var dataReferenceStream = await dataReference.OpenReadStreamAsync(maxAllowedSize: 10_000_000);
 
         return ImageServerUploadMethod == null ? ""
@@ -165,39 +228,36 @@ public partial class HtmlTextEditor
     public async Task SetTextPostUrlAsync(string textSavePostUrl)
     {
         TextSavePostUrl = textSavePostUrl;
-        await JsRuntime.InvokeAsync<string>("window.QuillFunctions.setTextSavePostUrl", textSavePostUrl);
+        await JsRuntime!.InvokeVoidAsync("window.QuillFunctions.setTextSavePostUrl", textSavePostUrl);
     }
 
     public async Task ShowStatusMessage(string message)
     {
-        await JsRuntime.InvokeAsync<string>("window.QuillFunctions.ShowStatusMessage", message);
+        await JsRuntime!.InvokeVoidAsync("window.QuillFunctions.ShowStatusMessage", message);
     }
 
-    protected override async Task
-        OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             await Interop.CreateQuill(
-                JsRuntime,
-                _quillElement,
-                _toolBar,
-                ReadOnly,
-                WrapImagesInFigures,
-                Placeholder,
-                Theme.ToString().ToLower(),
-                DebugLevel,
-                Id,
-                ImageServerUploadEnabled,
-                ImageServerUploadType,
-                ImageServerUploadUrl,
-                Fonts);
+                      JsRuntime!,
+                      _quillElement,
+                      _toolBar,
+                      ReadOnly,
+                      WrapImagesInFigures,
+                      Placeholder,
+                      Theme.ToString().ToLower(),
+                      DebugLevel,
+                      Id,
+                      ImageServerUploadEnabled,
+                      ImageServerUploadType,
+                      ImageServerUploadUrl,
+                      Fonts);
+
+            await ScrollEventHandler();
+            await BundleAndSetQuillBlazorBridge();
         }
-
-        await ScrollEventHandler();
-        await BundleAndSetQuillBlazorBridge();
-
-        await base.OnAfterRenderAsync(firstRender);
     }
 
     protected override async Task OnInitializedAsync()
@@ -238,7 +298,7 @@ public partial class HtmlTextEditor
         return $"toolbar-{rando}";
     }
 
-    private string CalculateToolBarClass(Toolbar toolbar)
+    private string CalculateToolBarClass()
     {
         var retVal = "toolbar";
 
@@ -259,18 +319,8 @@ public partial class HtmlTextEditor
     {
         if (StickyToolBar)
         {
-            await Interop.ConfigureStickyToolbar(JsRuntime, _toolBar);
+            await Interop.ConfigureStickyToolbar(JsRuntime!, _toolBar);
         }
-    }
-
-    public async Task InsertText(string text)
-    {
-        var QuillDelta = await Interop.InsertQuillText(JsRuntime, _quillElement, text);
-    }
-
-    public async Task InsertHtml(string html)
-    {
-        var QuillDelta = await Interop.InsertQuillHtml(JsRuntime, _quillElement, html);
     }
 
     #region IDisposable Pattern
@@ -291,7 +341,7 @@ public partial class HtmlTextEditor
 
     protected virtual void Dispose(bool disposing)
     {
-        if (disposing && !disposedValue)
+        if (disposing && !_disposedValue)
         {
             if (JsRuntime != null)
             {
@@ -299,13 +349,13 @@ public partial class HtmlTextEditor
             }
         }
 
-        if (!disposedValue)
+        if (!_disposedValue)
         {
             _objRef?.Dispose();
             _objRef = null;
         }
 
-        disposedValue = true;
+        _disposedValue = true;
     }
 
     protected virtual async ValueTask DisposeAsyncCore()

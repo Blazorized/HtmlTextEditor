@@ -37,7 +37,7 @@
 
         /**
          *
-         *  XToken is a custom blot created for example on custom html elements
+         *  XToken is a custom blot created for ANG's EISS HtmlTextEditor
          *
          *
          **/
@@ -435,7 +435,7 @@
              * @param {any} quillElement The element containing quill
              */
             getQuillHTML(quillElement) {
-                return this.quillElement.__quill.root.innerHTML;
+                return this.quillElement?.__quill?.root?.innerHTML;
             }
 
             /**
@@ -473,8 +473,9 @@
              * If successful POST of the quill data, fire the TextEditor's TextSavedEvent
              * */
             fireQuilLContentsChanged() {
-                this.blazorHook.invokeMethodAsync('FireTextChangedEvent');
                 const pageContents = this.getQuillHTML();
+
+                this.blazorHook.invokeMethodAsync('FireTextChangedEvent', pageContents);
 
                 const postUrl = this.postFileTextUrl;
 
@@ -599,6 +600,7 @@
                     fontAttributor.whitelist = customFonts;
                     Quill.register(fontAttributor, true);
                 }
+
                 let quill = new Quill(quillElement, options);
             },
 
@@ -611,21 +613,27 @@
             },
 
             getQuillHTML: function (quillElement) {
-                return quillElement.__quill.root.innerHTML;
+                return quillElement?.__quill?.root?.innerHTML;
             },
 
             loadQuillContent: function (quillElement, quillContent) {
                 if (quillElement.__quill) {
                     var content = JSON.parse(quillContent);
-                    return quillElement.__quill.setContents(content, 'api');
+                    quillElement.__quill.setContents(content, 'api');
+                    return quillElement.__quill.getText();
                 }
+                return null;
             },
 
             loadQuillHTMLContent: function (quillElement, quillHTMLContent) {
                 if (quillElement.__quill && quillElement.__quill.clipboard) {
                     const delta = quillElement.__quill.clipboard.convert(quillHTMLContent);
                     quillElement.__quill.setContents(delta, 'silent');
+
+                    if (quillElement.__quill.root)
+                        return quillElement.__quill.root?.innerHTML;
                 }
+                return quillHTMLContent;
             },
 
             enableQuillEditor: function (quillElement, mode) {
@@ -640,11 +648,13 @@
                     editorIndex = quillElement.__quill.getSelection().index;
                 }
 
-                return quillElement.__quill.updateContents(
+                quillElement.__quill.updateContents(
                     new Delta()
                         .retain(editorIndex)
                         .insert({ image: imageURL },
                             { alt: imageURL }));
+
+                return quillElement.__quill?.root?.innerHTML;
             },
             insertQuillText: function (quillElement, text) {
                 editorIndex = 0;
@@ -656,8 +666,10 @@
                     selectionLength = selection.length;
                 }
 
-                return quillElement.__quill.deleteText(editorIndex, selectionLength)
+                quillElement.__quill.deleteText(editorIndex, selectionLength)
                     .concat(quillElement.__quill.insertText(editorIndex, text));
+
+                return quillElement?.__quill?.root?.innerHTML;
             },
             insertQuillHtml: function (quillElement, quillHTMLContent) {
                 var Delta = Quill.import('delta');
@@ -675,18 +687,9 @@
                         .retain(editorIndex)
                         .delete(selectionLength));
 
-                return quillElement.__quill.clipboard.dangerouslyPasteHTML(editorIndex, quillHTMLContent);
+                quillElement.__quill.clipboard.dangerouslyPasteHTML(editorIndex, quillHTMLContent);
 
-                //const delta = quillElement.__quill.clipboard.convert({ html: quillHTMLContent });
-
-                //return quillElement.__quill.updateContents(
-                //    new Delta()
-                //        .retain(editorIndex)
-                //        .delete(selectionLength)
-                //        .insert(delta));
-
-                //return quillElement.__quill.deleteText(editorIndex, selectionLength)
-                //    .concat(quillElement.__quill.insertText(editorIndex, quillHTMLContent));
+                return quillElement?.__quill?.root?.innerHTML;
             },
             configureStickyToolbar: function (toolbarElement) {
                 window.onscroll = function (e) {
@@ -697,7 +700,6 @@
                         verticalPosition = document.documentElement.scrollTop;
                     else if (document.body) //ie quirks
                         verticalPosition = document.body.scrollTop;
-                    //var toolbarDiv = document.getElementById('toolBar');
                     var toolbarDiv = toolbarElement;
                     if (verticalPosition > 200) {
                         var scrollDiff = verticalPosition - 200;

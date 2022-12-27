@@ -4,15 +4,16 @@ using Microsoft.JSInterop;
 namespace Blazorized.HtmlTextEditor;
 
 public static class Interop
-{    internal static ValueTask<object> ConfigureStickyToolbar(
+{
+    internal static async ValueTask<object> ConfigureStickyToolbar(
         IJSRuntime jsRuntime, ElementReference toolbarElement)
     {
-        return jsRuntime.InvokeAsync<object>(
+        return await jsRuntime.InvokeAsync<object>(
             "window.QuillFunctions.configureStickyToolbar",
             toolbarElement);
     }
 
-    internal static ValueTask<object> CreateQuill(
+    static internal async ValueTask<bool> CreateQuill(
             IJSRuntime jsRuntime,
         ElementReference quillElement,
         ElementReference toolbar,
@@ -27,96 +28,83 @@ public static class Interop
         string imageServerUploadUrl,
         List<string>? customFonts = null)
     {
-        return jsRuntime.InvokeAsync<object>(
-            "window.QuillFunctions.createQuill",
-            quillElement,
-            toolbar,
-            readOnly,
-            wrapImagesInFigures,
-            placeholder,
-            theme,
-            debugLevel,
-            scrollingContainerId,
-            imageServerUploadEnabled,
-            imageServerUploadType.ToString(),
-            imageServerUploadUrl,
-            customFonts);
+        return await jsRuntime.InvokeVoidAsyncWithErrorHandling(
+             "window.QuillFunctions.createQuill",
+             quillElement,
+             toolbar,
+             readOnly,
+             wrapImagesInFigures,
+             placeholder,
+             theme,
+             debugLevel,
+             scrollingContainerId,
+             imageServerUploadEnabled,
+             imageServerUploadType.ToString(),
+             imageServerUploadUrl,
+             customFonts);
     }
 
-    internal static ValueTask<object> EnableQuillEditor(
-        IJSRuntime jsRuntime,
-        ElementReference quillElement,
-        bool mode)
+    internal static async ValueTask<bool> EnableQuillEditor(IJSRuntime jsRuntime, ElementReference quillElement, bool mode)
     {
-        return jsRuntime.InvokeAsync<object>(
-            "window.QuillFunctions.enableQuillEditor",
-            quillElement, mode);
+        return await jsRuntime.InvokeVoidAsyncWithErrorHandling("window.QuillFunctions.enableQuillEditor", quillElement, mode);
     }
 
-    internal static ValueTask<string> GetContent(
+    internal static async ValueTask<string> GetContent(
         IJSRuntime jsRuntime,
         ElementReference quillElement)
     {
-        return jsRuntime.InvokeAsync<string>(
-            "window.QuillFunctions.getQuillContent",
-            quillElement);
+        return await jsRuntime.InvokeAsync<string>("window.QuillFunctions.getQuillContent", quillElement);
     }
 
-    internal static ValueTask<string> GetHtml(
+    internal static async ValueTask<string> GetHtml(
         IJSRuntime jsRuntime,
         ElementReference quillElement)
     {
-        return jsRuntime.InvokeAsync<string>(
-            "window.QuillFunctions.getQuillHTML",
-            quillElement);
+        return await jsRuntime.InvokeAsync<string>("window.QuillFunctions.getQuillHTML", quillElement);
     }
 
-    internal static ValueTask<string> GetText(
+    internal async static ValueTask<string> GetText(
                     IJSRuntime jsRuntime,
         ElementReference quillElement)
     {
-        return jsRuntime.InvokeAsync<string>(
-            "window.QuillFunctions.getQuillText",
-            quillElement);
+        return await jsRuntime.InvokeAsync<string>("window.QuillFunctions.getQuillText", quillElement);
     }
 
-    internal static ValueTask<object> InsertQuillHtml(IJSRuntime jsRuntime, ElementReference quillElement, string html)
+    internal static async ValueTask<string> InsertQuillHtml(IJSRuntime jsRuntime, ElementReference quillElement, string html)
     {
-        return jsRuntime.InvokeAsync<object>("window.QuillFunctions.insertQuillHtml", quillElement, html);
+        return await jsRuntime.InvokeAsync<string>("window.QuillFunctions.insertQuillHtml", quillElement, html);
     }
 
-    internal static ValueTask<object> InsertQuillImage(
+    internal static async ValueTask<string> InsertQuillImage(
             IJSRuntime jsRuntime,
         ElementReference quillElement,
         string imageUrl)
     {
-        return jsRuntime.InvokeAsync<object>(
-            "window.QuillFunctions.insertQuillImage",
-            quillElement, imageUrl);
+        return await jsRuntime.InvokeAsync<string>("window.QuillFunctions.insertQuillImage", quillElement, imageUrl);
     }
 
-    internal static ValueTask<object> InsertQuillText(IJSRuntime jsRuntime, ElementReference quillElement, string text)
+    internal static async ValueTask<string> InsertQuillText(IJSRuntime jsRuntime, ElementReference quillElement, string text)
     {
-        return jsRuntime.InvokeAsync<object>("window.QuillFunctions.insertQuillText", quillElement, text);
+        return await jsRuntime.InvokeAsync<string>("window.QuillFunctions.insertQuillText", quillElement, text);
     }
 
-    internal static ValueTask<object> LoadQuillContent(IJSRuntime jsRuntime, ElementReference quillElement, string content)
+    internal static async ValueTask<string> LoadQuillContent(IJSRuntime jsRuntime, ElementReference quillElement, string content)
     {
-        return jsRuntime.InvokeAsync<object>("window.QuillFunctions.loadQuillContent", quillElement, content);
+        return await jsRuntime.InvokeAsync<string>("window.QuillFunctions.loadQuillContent", quillElement, content);
     }
 
-    internal static ValueTask<object> LoadQuillHtmlContent(IJSRuntime jsRuntime, ElementReference quillElement, string quillHtmlContent)
+    internal static async ValueTask<string> LoadQuillHtmlContent(IJSRuntime jsRuntime, ElementReference quillElement, string quillHtmlContent)
     {
-        return jsRuntime.InvokeAsync<object>("window.QuillFunctions.loadQuillHTMLContent", quillElement, quillHtmlContent);
+        return await jsRuntime.InvokeAsync<string>("window.QuillFunctions.loadQuillHTMLContent", quillElement, quillHtmlContent);
     }
 
-    internal static ValueTask<object> SetQuillBlazorBridge(IJSRuntime jsRuntime, ElementReference quillElement, DotNetObjectReference<HtmlTextEditor> objRef,
+    internal static async ValueTask<bool> SetQuillBlazorBridge(IJSRuntime jsRuntime, ElementReference quillElement, DotNetObjectReference<HtmlTextEditor> objRef,
         string editorTextSaveUrl, string editorStatusElementId)
     {
-        return jsRuntime.InvokeAsync<object>("window.QuillFunctions.setQuillBlazorBridge",
-            quillElement,
-            objRef,
-            editorTextSaveUrl,
-            editorStatusElementId);
+        return await jsRuntime.InvokeVoidAsyncWithErrorHandling("window.QuillFunctions.setQuillBlazorBridge",
+                            quillElement,
+                            objRef,
+                            editorTextSaveUrl,
+                            editorStatusElementId);
     }
 }
