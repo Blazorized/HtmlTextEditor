@@ -37,7 +37,7 @@
 
         /**
          *
-         *  XToken is a custom blot created for ANG's EISS HtmlTextEditor
+         *  XToken is a custom blot created for example on custom html elements
          *
          *
          **/
